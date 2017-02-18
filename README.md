@@ -27,9 +27,6 @@ The goals / steps of this project are the following:
 ---
 ###Writeup / README
 
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Advanced-Lane-Lines/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
-
-You're reading it!
 ###Camera Calibration
 
 In order to detect correctly the lanes, because cameras uses lenses and are not a pinhole camera, the camera need to be calibrated in order to obtain a transformation of the images like they were captured using an ideal model.
@@ -37,11 +34,8 @@ In order to detect correctly the lanes, because cameras uses lenses and are not 
 ####1. Computation of camera matrix
 
 Given a point in the 3D image P(X,Y,Z), this point is transformed by the camera into a 2D point p(x,y) via the camera Matrix.
-
 ![equation](http://latex.codecogs.com/gif.latex?P%5Csimp)
-
 However, lenses introduce  `radial ` and  `tangetial ` distortion, a correction of these distortion are required in order to have an image as taken from the pinhole camera.
-
 **Camera matrix** and **distortion coefficients** can be discovered taking images of a known pattern in different position together with the pattern in a non *distorted* form, and found the transformation that map the distorted images in the known pattern. 
 
 The process of discovering this elements is the called **camera calibration**.
@@ -107,7 +101,7 @@ Below an example of how an image appears after the distortion correction.
 
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/TestImageUndistortion.png)  
 
-####2. Image filter application
+####2. Image filtering
 
 Lines are elements in the image recognized by drivers because of their shape, color and position/direction. Moreover, lines are detected in different light conditions. Good Light, presence of shadows ecc. 
 
@@ -144,7 +138,12 @@ Below you can find the application of the HLS color filtering to one of the test
 
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/HLSFIltering.png)  
 
+**Sobel operator** is a very powerful operator to detect edges. Depending on the kernel size, it can detect sharper or stronger edges in the desired direction. Edges are computed convolving the kernel all along the image and computing a gradient value for each pixel of the image. Thresholding this gradient let us to choose which pixels are for us edges (an then lane lines).
 
+Sobel application along x and y, can be combined in different ways. For this project:
+1. I first combined the two direction application looking at the magnitude mask
+2. Then I used the x and y application of the operator to compute a sobel direction mask
+3. I combined the magnitude and the direction mask in a single sobel mask.  
 
 Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
