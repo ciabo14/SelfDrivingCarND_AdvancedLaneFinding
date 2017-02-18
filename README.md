@@ -79,12 +79,22 @@ Once the camera is calibrated (ad this is executed only once whe I started worki
 As the graph below shows, the images are processed as follow:
 
 1. Undistort the image using the camera matrix and the undistortion parameters as shown above
-2. Apply image analisys *filters* in order to keep mostly pixels from lane lines only:
-  1. Apply sobel operator along x and y direction; Combine the masks  
-  
-  
-  
-![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/Pipeline_Diagram.pdf)
+2. Apply image analisys *filters* in order to keep almost only pixels from lane lines:
+  1. Apply sobel operator along x and y direction; 
+    1. Combine sobel x and sobel y masks with magnitude thresholds
+    2. Combine sobel x and sobel y masks with direction thresholds
+    3. Combine the both filters above in a Bitwise OR manner
+  2. Apply HLS image thresholds over Saturation and Hue channels
+3. Combine filter both from Sobel application and color channels thresholding in a Bitwise OR manner.
+4. Apply perspective transformation to select lane section only
+5. Elaborate the image obtained from the perspective transformation application as follow:
+  1. Compute lane lines pixels using slinding windows and the histogram, or using the last recognised lane lines
+  2. Evaluate the found lines from a plausability point of view
+  3. Compute lines polynomial fit
+  4. Compute lanes curvature and position
+6. Transform the binary mask with the found lane lines back in the original perspective 
+    
+![embed]https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/Pipeline_Diagram.pdf[/embed]
   
 ####1. Provide an example of a distortion-corrected image.
 To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
