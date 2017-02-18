@@ -53,9 +53,8 @@ During the calibration we first found the internal corners of the chess pattern 
 ```python
 	gray_image = cv2.cvtColor(original_img,cv2.COLOR_BGR2GRAY)ret, corners = cv2.findChessboardCorners(gray_image, self.grid_shape, None)
 ```
-![alt tag][https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/FoundCorners_1.png]
-![alt tag][https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/FoundCorners_2.png]
-
+![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/FoundCorners_1.png)
+![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/FoundCorners_2.png)
 
 If the corners are found these are appened to the set of points for all the images 
 ```python
@@ -72,7 +71,7 @@ ret, self.cam_mtx, self.cal_dist, self.rvecs, self.tvecs = cv2.calibrateCamera(o
 cv2.undistort(img, self.cam_mtx, self.cal_dist, None, self.cam_mtx)
 ```
 
-![alt tag][https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/CameraUndistortion.png]
+![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/CameraUndistortion.png)
 
 ###Pipeline (single images)
 
@@ -81,7 +80,12 @@ As the graph below shows, the images are processed as follow:
 
 1. Undistort the image using the camera matrix and the undistortion parameters as shown above
 2. Apply image analisys *filters* in order to keep mostly pixels from lane lines only:
-  1. Apply sobel operator along x and y direction; Combine the soble operation m 
+  1. Apply sobel operator along x and y direction; Combine the masks  
+  
+  
+  
+![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/Pipeline_Diagram.pdf)
+  
 ####1. Provide an example of a distortion-corrected image.
 To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
 ![alt text][image2]
