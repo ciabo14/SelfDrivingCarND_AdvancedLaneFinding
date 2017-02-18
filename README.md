@@ -54,8 +54,8 @@ During the calibration we first found the internal corners of the chess pattern 
 	gray_image = cv2.cvtColor(original_img,cv2.COLOR_BGR2GRAY)
   ret, corners = cv2.findChessboardCorners(gray_image, self.grid_shape, None)
 ```
-![alt text][https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/images/FoundCorners_1.png]
-![alt text][https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/images/FoundCorners_2.png]
+![alt text][https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/FoundCorners_1.png]
+![alt text][https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/FoundCorners_2.png]
 
 
 If the corners are found these are appened to the set of points for all the images 
@@ -73,7 +73,7 @@ ret, self.cam_mtx, self.cal_dist, self.rvecs, self.tvecs = cv2.calibrateCamera(o
 cv2.undistort(img, self.cam_mtx, self.cal_dist, None, self.cam_mtx)
 ```
 
-![alt text][https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/images/CameraUndistortion.png]
+![alt text][https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/CameraUndistortion.png]
 
 ###Pipeline (single images)
 
