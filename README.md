@@ -93,13 +93,60 @@ As the graph below shows, the images are processed as follow:
   3. Compute lines polynomial fit
   4. Compute lanes curvature and position
 6. Transform the binary mask with the found lane lines back in the original perspective 
-    
-![embed]https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/Pipeline_Diagram.pdf[/embed]
-  
-####1. Provide an example of a distortion-corrected image.
-To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
-![alt text][image2]
-####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
+![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/Pipeline_Diagram.png)  
+
+####1. Correction of the image distortion.
+
+Test images, or frames from the video, were undistorted using the CameraManager function *undistort_image()*. This function only take an image as input, and return the undistorted image 
+
+```python
+def undistort_image(self,img):
+	return cv2.undistort(img, self.cam_mtx, self.cal_dist, None, self.cam_mtx)
+```
+Below an example of how an image appears after the distortion correction.
+
+![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/TestImageUndistortion.png)  
+
+####2. Image filter application
+
+Lines are elements in the image recognized by drivers because of their shape, color and position/direction. Moreover, lines are detected in different light conditions. Good Light, presence of shadows ecc. 
+
+In order to recognize lines as a human driver does, the same recognition process is eligible for machines. 
+
+For this reasons two different filtering to the images were applied in order to discover lane lines:
+
+1. Color filtering
+2. Shape and position filtering using Sobel operator
+
+The first intuitive way to use color filtering, is to filter white and yellow colors in the image and discard all the other colors. However, using the RGB color space, we can develop a filter correlated to the light in the image (enviroment). 
+However, moving to a different space we can capture lines indipendetly form the the light (day light, artificial lights or even shadows). 
+This is the case of the HLS color space. 
+Filtering the image in the Hue and Saturation channels, we are able to remove the majority of the pixels keeping lane lines even in shadows conditions.
+
+I applyed a threshold to the Hue and Saturation channels defined as below:
+
+```python
+mask_HLS = {"low_thresholds":np.array([ 0,  0,  100]), "high_thresholds":np.array([ 100, 255, 255])}
+...
+
+def color_select(self, mask_dict, img_representation = "RGB"):
+	mask = np.zeros_like(self.gray)
+	if(img_representation == "RGB"):
+		mask[((self.undistorted_image[:,:,0] >= mask_dict["low_thresholds"][0]) & (self.undistorted_image[:,:,0] <= mask_dict["high_thresholds"][0])) & ((self.undistorted_image[:,:,1] >= mask_dict["low_thresholds"][1]) & (self.undistorted_image[:,:,1] <= mask_dict["high_thresholds"][1]))& 
+	
+	if(img_representation == "HLS"):
+		mask[((self.HLS_image[:,:,0] >= mask_dict["low_thresholds"][0]) & (self.HLS_image[:,:,0] <= mask_dict["high_thresholds"][0]))&((self.HLS_image[:,:,1] >= mask_dict["low_thresholds"][1]) & (self.HLS_image[:,:,1] <= mask_dict["high_thresholds"][1]))&((self.HLS_image[:,:,2] >= mask_dict["low_thresholds"][2]) & (self.HLS_image[:,:,2] <= mask_dict["high_thresholds"][2]))] = 1	
+
+	return mask
+```
+
+Below you can find the application of the HLS color filtering to one of the test images.
+
+![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/HLSFIltering.png)  
+
+
+
+Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
 
 ![alt text][image3]
