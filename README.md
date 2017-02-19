@@ -3,11 +3,17 @@
 The provided project is made of the following files:
 [//]: # (File References)
 [***main.py***]: is the files containing the main, that runs the entire algorithm in the test images rather then in the videos
+
 [***CameraManager.py***]: is the class responsible for the camera management. It is used to calibrate the camera and to apply everuy kind of transformation to the images that involve transformations due to the camera
+
 [***ImageManager.py***]: is the core manager of the algorithm. It manage all the work into images, from creation of the CameraManager, up to the call to the line detection function.
+
 [***RoadImage.py***]: represent a road image class. It includes all the representation of the image used during the process, and is responsible to apply color/sobel filters to the original undistorted image 
+
 [***Line.py***]: the line class is responsible for all the line detection steps. It not only detect lines from the bird eyes view of the road, but manage also the history of seen lines and manage the curvature/position calculation
+
 [***output images***]: ./output_images are the test images recomputed applying the algorithm
+
 [***output video***]: ./project_video_processed.mp4 is the project_video.mp4 reprocessed accordingly to the description above
 
 ---
