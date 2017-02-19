@@ -26,14 +26,12 @@ The process of discovering this elements is the called **camera calibration**.
 
 The Camera in entirely managed in the `CameraManager.py` by the *CameraManager* class. 
 If the camera was never calibrated, the manager calibrate the camera with the support of the chess pattern images located in the folder "./camera_cal" and then save the camera matrix and the distortion coefficients into a file `calibration.p` in the same file. Instead, if the calibration was already executed, the manager load the file and the relative items.
-
 During the calibration we first found the internal corners of the chess pattern (known as number **(9,6)**) for each of the image provided.
 ```python
 	gray_image = cv2.cvtColor(original_img,cv2.COLOR_BGR2GRAY)ret, corners = cv2.findChessboardCorners(gray_image, self.grid_shape, None)
 ```
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/FoundCorners_1.png)
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/FoundCorners_2.png)
-
 If the corners are found these are appened to the set of points for all the images 
 ```python
 if ret:
@@ -48,14 +46,10 @@ ret, self.cam_mtx, self.cal_dist, self.rvecs, self.tvecs = cv2.calibrateCamera(o
 ```python
 cv2.undistort(img, self.cam_mtx, self.cal_dist, None, self.cam_mtx)
 ```
-
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/CameraUndistortion.png)
-
 ###Pipeline (single images)
-
 Once the camera is calibrated (ad this is executed only once whe I started working on the project), each image (single or from a frame), can be elaborated in order to detect lane.
 As the graph below shows, the images are processed as follow:
-
 1. Undistort the image using the camera matrix and the undistortion parameters as shown above
 2. Apply image analisys *filters* in order to keep almost only pixels from lane lines:
   1. Apply HLS image thresholds over Saturation and Hue channels
@@ -72,9 +66,7 @@ As the graph below shows, the images are processed as follow:
   4. Compute lanes curvature and position
 6. Transform the binary mask with the found lane lines back in the original perspective 
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/Pipeline_Diagram.png)  
-
 ####1. Correction of the image distortion.
-
 Test images, or frames from the video, were undistorted using the CameraManager function *undistort_image()*. This function only take an image as input, and return the undistorted image 
 ```python
 def undistort_image(self,img):
@@ -82,9 +74,7 @@ def undistort_image(self,img):
 ```
 Below an example of how an image appears after the distortion correction.
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/TestImageUndistortion.png)  
-
 ####2. Image filtering
-
 Lines are elements in the image recognized by drivers because of their shape, color and position/direction. Moreover, lines are detected in different light conditions. Good Light, presence of shadows ecc. 
 In order to recognize lines as a human driver does, the same recognition process is eligible for machines. 
 For this reasons two different filtering to the images were applied in order to discover lane lines:
@@ -134,7 +124,6 @@ def apply_sobel_operator(self):
 	self.dir_sobel = self.dir_threshold(sobel_x,sobel_y)
 ```
 and then combine the sobel filters application as:
-
 ```python
 def combine_sobel_filter(self,image):
 	sobel_combined = np.zeros_like(image.gray)
@@ -155,37 +144,43 @@ def filter_image_for_line_detection(self):
 	self.img.set_color_line_mask(self.combine_color_filters(self.img))
 	self.img.set_lane_lines_mask(cv2.bitwise_or(self.img.sobel_combined,self.img.color_line_mask))
 ```
-####3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
+####3. Perspective transformation
+Perspective transformation to bird eyes perspective is very useful to limit the section of the image where to focus the interest and, more important, to work on an image without prospective distortion (parallel lines appears parallel in the bird eyes image and not convergent in the vanishing Point).
+For this purpose the *cv2.warpPerspective* was computed it the edge image, selecting as source and destination corners of the rectangle the following corners:
+Below The code that describe all the filtering process executed by the ImageManager class:
+```python
+height_section = np.uint(img_size[1]/2)
 
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+top_left_coordinate = height_section - .107*np.uint(img_size[1]/2)
+top_right_coordinate = height_section + .113*np.uint(img_size[1]/2)
+bottom_left_coordinate = height_section - .7*np.uint(img_size[1]/2)
+bottom_right_coordinate = height_section + .75*np.uint(img_size[1]/2)
 
-```
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
+top_margin = np.uint(img_size[0]/1.55)
+bottom_margin = np.uint(img_size[0])
 
-```
-This resulted in the following source and destination points:
-
+src_corners = np.float32([[bottom_left_coordinate,bottom_margin], #bottomLeft
+	[bottom_right_coordinate,bottom_margin],	#bottomRight
+    [top_right_coordinate,top_margin], #topRight
+    [top_left_coordinate,top_margin]]) #topLeft
+    
+"""
 | Source        | Destination   | 
 |:-------------:|:-------------:| 
-| 585, 460      | 320, 0        | 
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
-
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
-
-![alt text][image4]
-
-####4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
+| 192, 720      | 200, 720      | 
+| 1120, 720     | 1080, 720     |
+| 712, 464      | 1080, 0       |
+| 571, 464      | 200, 0        |
+ """    
+```
+I also tryed with different fixed corners. However this bring very similar results.
+```python
+src_corners = np.array([[585, 460], [203, 720], [1127, 720], [695, 460]]).astype(np.float32)
+			dst_corners = np.array([[320, 0], [320, 720], [960, 720], [960, 0]]).astype(np.float32)
+```
+![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/PerspectiveTransformation.png)
+![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/PerspectiveTransformation-Filtered.png)
+####4. Lane lines detection
 
 Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
 
