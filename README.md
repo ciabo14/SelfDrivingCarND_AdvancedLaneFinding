@@ -433,16 +433,17 @@ def process_image(img):
 
 ###Discussion
 
-####1. In my opinion, the good results of a solution to this kind of problem comes from two different ways:
+####1. 
+In my opinion, the good results of a solution to this kind of problem comes from two different ways:
 1. Compute a strong and roboust edge detection to identify lane lines
 2. Develop a smart strategy to detect lines depending of the history (last frames) and the current detection features (like difference with the last detection rather than plausible curvature).
 
 A good combination of the two point above can provide good lane detection in almost all the conditions. 
 Of course, more complicated situations with a lot of shadows or artificial and not constant light, or even sun light reflection, requires a stronger calibration of the approach parameters.
 
-####2 Interesting possibile future investigation
-Several are the possibile interesting investigation 
+####2 
+Interesting possibile future investigation
+Several are the possibile interesting investigation:
 1. Apply all the strategy (from the edge detection using color and sobel operator) at the bird eye image instead of at the original image. This would let the approach to ignore from the start about all the not interesting points
 2. Investigate in deep masks combinations for edge detection. Different operators as well as different combinatio of the computed masks could bring to different solution
 3. Why not combine the computer vision approach with a strong DNN?
-
