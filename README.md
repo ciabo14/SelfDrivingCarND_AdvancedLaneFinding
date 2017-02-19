@@ -405,6 +405,26 @@ The execution of the described pipeline to a video respct to an image has 2 main
 1. All the detection smoothing as well as plausability verification can be applied
 2. The frames need to be written back in a video stream.
 The second requirement was accomplished with the support of the *moviepy.editor VideoFileClip* class.
+Instead of just apply the algorithm to a single image (and create a new ImageManager for each image), a single instance of the Image manager is used and history about lanes and images is memorized
+
+```python
+def test_video():
+	print("Running on test video1...")
+	# Define our Lanes object
+	#im = ImageManager(cm)
+	#####################################
+	# Run our pipeline on the test video 
+	#####################################
+
+	clip = VideoFileClip("./project_video.mp4")
+	output_video = "./project_video_processed.mp4"
+	output_clip = clip.fl_image(process_image)
+	output_clip.write_videofile(output_video, audio=False)
+
+def process_image(img):
+	result = im.find_lane_lines(img)
+	return result
+```
 
 ###Discussion
 
