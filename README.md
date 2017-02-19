@@ -1,28 +1,12 @@
 **Advanced Lane Finding Project**
 
-The goals / steps of this project are the following:
-
-* Compute the camera calibration matrix and distortion coefficients given a set of chessboard images.
-* Apply a distortion correction to raw images.
-* Use color transforms, gradients, etc., to create a thresholded binary image.
-* Apply a perspective transform to rectify binary image ("birds-eye view").
-* Detect lane pixels and fit to find the lane boundary.
-* Determine the curvature of the lane and vehicle position with respect to center.
-* Warp the detected lane boundaries back onto the original image.
-* Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
-
-[//]: # (Image References)
-
-[image1]: ./examples/undistort_output.png "Undistorted"
-[image2]: ./test_images/test1.jpg "Road Transformed"
-[image3]: ./examples/binary_combo_example.jpg "Binary Example"
-[image4]: ./examples/warped_straight_lines.jpg "Warp Example"
-[image5]: ./examples/color_fit_lines.jpg "Fit Visual"
-[image6]: ./examples/example_output.jpg "Output"
-[video1]: ./project_video.mp4 "Video"
-
-## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
-###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
+The provided project is made of the following files:
+[//]: # (File References)
+[***main.py***]: is the files containing the main, that runs the entire algorithm in the test images rather then in the videos
+[***CameraManager.py***]: is the class responsible for the camera management. It is used to calibrate the camera and to apply everuy kind of transformation to the images that involve transformations due to the camera
+[***ImageManager.py***]: is the core manager of the algorithm. It manage all the work into images, from creation of the CameraManager, up to the call to the line detection function.
+[***RoadImage.py***]: represent a road image class. It includes all the representation of the image used during the process, and is responsible to apply color/sobel filters to the original undistorted image 
+[***Line.py***]: the line class is responsible for all the line detection steps. It not only detect lines from the bird eyes view of the road, but manage also the history of seen lines and manage the curvature/position calculation
 
 ---
 ###Writeup / README
@@ -74,11 +58,11 @@ As the graph below shows, the images are processed as follow:
 
 1. Undistort the image using the camera matrix and the undistortion parameters as shown above
 2. Apply image analisys *filters* in order to keep almost only pixels from lane lines:
-  1. Apply sobel operator along x and y direction; 
+  1. Apply HLS image thresholds over Saturation and Hue channels
+  2. Apply sobel operator along x and y direction; 
     1. Combine sobel x and sobel y masks with magnitude thresholds
     2. Combine sobel x and sobel y masks with direction thresholds
     3. Combine the both filters above in a Bitwise OR manner
-  2. Apply HLS image thresholds over Saturation and Hue channels
 3. Combine filter both from Sobel application and color channels thresholding in a Bitwise OR manner.
 4. Apply perspective transformation to select lane section only
 5. Elaborate the image obtained from the perspective transformation application as follow:
@@ -92,33 +76,25 @@ As the graph below shows, the images are processed as follow:
 ####1. Correction of the image distortion.
 
 Test images, or frames from the video, were undistorted using the CameraManager function *undistort_image()*. This function only take an image as input, and return the undistorted image 
-
 ```python
 def undistort_image(self,img):
 	return cv2.undistort(img, self.cam_mtx, self.cal_dist, None, self.cam_mtx)
 ```
 Below an example of how an image appears after the distortion correction.
-
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/TestImageUndistortion.png)  
 
 ####2. Image filtering
 
 Lines are elements in the image recognized by drivers because of their shape, color and position/direction. Moreover, lines are detected in different light conditions. Good Light, presence of shadows ecc. 
-
 In order to recognize lines as a human driver does, the same recognition process is eligible for machines. 
-
 For this reasons two different filtering to the images were applied in order to discover lane lines:
-
 1. Color filtering
 2. Shape and position filtering using Sobel operator
-
 The first intuitive way to use color filtering, is to filter white and yellow colors in the image and discard all the other colors. However, using the RGB color space, we can develop a filter correlated to the light in the image (enviroment). 
 However, moving to a different space we can capture lines indipendetly form the the light (day light, artificial lights or even shadows). 
 This is the case of the HLS color space. 
 Filtering the image in the Hue and Saturation channels, we are able to remove the majority of the pixels keeping lane lines even in shadows conditions.
-
 I applyed a threshold to the Hue and Saturation channels defined as below:
-
 ```python
 mask_HLS = {"low_thresholds":np.array([ 0,  0,  100]), "high_thresholds":np.array([ 100, 255, 255])}
 ...
@@ -133,23 +109,52 @@ def color_select(self, mask_dict, img_representation = "RGB"):
 
 	return mask
 ```
-
 Below you can find the application of the HLS color filtering to one of the test images.
-
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/HLSFIltering.png)  
-
 **Sobel operator** is a very powerful operator to detect edges. Depending on the kernel size, it can detect sharper or stronger edges in the desired direction. Edges are computed convolving the kernel all along the image and computing a gradient value for each pixel of the image. Thresholding this gradient let us to choose which pixels are for us edges (an then lane lines).
-
 Sobel application along x and y, can be combined in different ways. For this project:
 1. I first combined the two direction application looking at the magnitude mask
 2. Then I used the x and y application of the operator to compute a sobel direction mask
 3. I combined the magnitude and the direction mask in a single sobel mask.  
+The ImageManager is responsible to aply this filtering with the function *combine_sobel_filters()*. It first calls the RoadImage *apply_sobel_operator()* that runs the procedure of filters computation
+```python
+self.mag_thresh = (30,255)
+self.sobel_kernel = 5
+self.dir_thresh = (0.6, 1.2)
 
-Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+...
 
-![alt text][image3]
+def apply_sobel_operator(self):
 
+	sobel_x = cv2.Sobel(self.gray, cv2.CV_64F, 1, 0, ksize=self.sobel_kernel)
+	sobel_y = cv2.Sobel(self.gray, cv2.CV_64F, 0, 1, ksize=self.sobel_kernel)
+	self.abs_sobel_x = self.abs_sobel_thresh(sobel_x,"x")
+	self.abs_sobel_y = self.abs_sobel_thresh(sobel_y,"y")
+	self.mag_sobel = self.mag_thresh_mask(sobel_x,sobel_y)
+	self.dir_sobel = self.dir_threshold(sobel_x,sobel_y)
+```
+and then combine the sobel filters application as:
+
+```python
+def combine_sobel_filter(self,image):
+	sobel_combined = np.zeros_like(image.gray)
+	#sobel_combined[((image.abs_sobel_x == 1) & (image.abs_sobel_y == 1)) | ((image.mag_sobel == 1) & (image.dir_sobel == 1))] = 1
+	sobel_combined[((image.mag_sobel == 1) & (image.dir_sobel == 1))] = 1
+	return sobel_combined
+```
+This bring in results like in the image below:
+![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/SobelFiltering.png)  
+Finally, color and sobel masks are combined  in a Bitwise OR manner, leading at the following edge image:
+![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/HLS_SobelMasksApplication
+.png)
+Below The code that describe all the filtering process executed by the ImageManager class:
+```python
+def filter_image_for_line_detection(self):
+	self.img.apply_sobel_operator()
+	self.img.set_sobel_combined(self.combine_sobel_filter(self.img))
+	self.img.set_color_line_mask(self.combine_color_filters(self.img))
+	self.img.set_lane_lines_mask(cv2.bitwise_or(self.img.sobel_combined,self.img.color_line_mask))
+```
 ####3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
 The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
