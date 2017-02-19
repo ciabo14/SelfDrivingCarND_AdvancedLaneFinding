@@ -444,6 +444,7 @@ Of course, more complicated situations with a lot of shadows or artificial and n
 ####2 
 Interesting possibile future investigation
 Several are the possibile interesting investigation:
+
 1. Apply all the strategy (from the edge detection using color and sobel operator) at the bird eye image instead of at the original image. This would let the approach to ignore from the start about all the not interesting points
 2. Investigate in deep masks combinations for edge detection. Different operators as well as different combinatio of the computed masks could bring to different solution
 3. Why not combine the computer vision approach with a strong DNN?
