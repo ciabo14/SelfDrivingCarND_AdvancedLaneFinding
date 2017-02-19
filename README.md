@@ -52,7 +52,9 @@ ret, self.cam_mtx, self.cal_dist, self.rvecs, self.tvecs = cv2.calibrateCamera(o
 cv2.undistort(img, self.cam_mtx, self.cal_dist, None, self.cam_mtx)
 ```
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/CameraUndistortion.png)
+
 ###Pipeline (single images)
+
 Once the camera is calibrated (ad this is executed only once whe I started working on the project), each image (single or from a frame), can be elaborated in order to detect lane.
 As the graph below shows, the images are processed as follow:
 1. Undistort the image using the camera matrix and the undistortion parameters as shown above
@@ -71,7 +73,9 @@ As the graph below shows, the images are processed as follow:
   4. Compute lanes curvature and position
 6. Transform the binary mask with the found lane lines back in the original perspective 
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/Pipeline_Diagram.png)  
+
 ####1. Correction of the image distortion.
+
 Test images, or frames from the video, were undistorted using the CameraManager function *undistort_image()*. This function only take an image as input, and return the undistorted image 
 ```python
 def undistort_image(self,img):
