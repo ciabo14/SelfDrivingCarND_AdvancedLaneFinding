@@ -33,7 +33,8 @@ The Camera in entirely managed in the `CameraManager.py` by the *CameraManager* 
 If the camera was never calibrated, the manager calibrate the camera with the support of the chess pattern images located in the folder "./camera_cal" and then save the camera matrix and the distortion coefficients into a file `calibration.p` in the same file. Instead, if the calibration was already executed, the manager load the file and the relative items.
 During the calibration we first found the internal corners of the chess pattern (known as number **(9,6)**) for each of the image provided.
 ```python
-	gray_image = cv2.cvtColor(original_img,cv2.COLOR_BGR2GRAY)ret, corners = cv2.findChessboardCorners(gray_image, self.grid_shape, None)
+gray_image = cv2.cvtColor(original_img,cv2.COLOR_BGR2GRAY)
+ret, corners = cv2.findChessboardCorners(gray_image, self.grid_shape, None)
 ```
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/FoundCorners_1.png)
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/FoundCorners_2.png)
