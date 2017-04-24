@@ -18,11 +18,11 @@ The provided project is made of the following files:
 
 ---
 
-###Camera Calibration
+### Camera Calibration
 
 In order to detect correctly the lanes, because cameras uses lenses and are not a pinhole camera, the camera need to be calibrated in order to obtain a transformation of the images like they were captured using an ideal model.
 
-####1. Computation of camera matrix
+#### 1. Computation of camera matrix
 
 Given a point in the 3D image P(X,Y,Z), this point is transformed by the camera into a 2D point p(x,y) via the camera Matrix.
 ![equation](http://latex.codecogs.com/gif.latex?P%5Csimp)
@@ -54,7 +54,7 @@ cv2.undistort(img, self.cam_mtx, self.cal_dist, None, self.cam_mtx)
 ```
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/CameraUndistortion.png)
 
-###Pipeline (single images)
+### Pipeline (single images)
 
 Once the camera is calibrated (ad this is executed only once whe I started working on the project), each image (single or from a frame), can be elaborated in order to detect lane.
 As the graph below shows, the images are processed as follow:
@@ -75,7 +75,7 @@ As the graph below shows, the images are processed as follow:
 6. Transform the binary mask with the found lane lines back in the original perspective 
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/Pipeline_Diagram.png)  
 
-####1. Correction of the image distortion.
+#### 1. Correction of the image distortion.
 
 Test images, or frames from the video, were undistorted using the CameraManager function *undistort_image()*. This function only take an image as input, and return the undistorted image 
 ```python
@@ -85,7 +85,7 @@ def undistort_image(self,img):
 Below an example of how an image appears after the distortion correction.
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/TestImageUndistortion.png)  
 
-####2. Image filtering
+#### 2. Image filtering
 
 Lines are elements in the image recognized by drivers because of their shape, color and position/direction. Moreover, lines are detected in different light conditions. Good Light, presence of shadows ecc. 
 In order to recognize lines as a human driver does, the same recognition process is eligible for machines. 
@@ -146,7 +146,7 @@ def combine_sobel_filter(self,image):
 This bring in results like in the image below:
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/SobelFiltering.png)  
 
-####3. Color and Sobel masks combination
+#### 3. Color and Sobel masks combination
 
 Finally, color and sobel masks are combined  in a Bitwise OR manner, leading at the following edge image:
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/HLS_SobelMasksApplication
@@ -160,7 +160,7 @@ def filter_image_for_line_detection(self):
 	self.img.set_lane_lines_mask(cv2.bitwise_or(self.img.sobel_combined,self.img.color_line_mask))
 ```
 
-####4. Perspective transformation
+#### 4. Perspective transformation
 
 Perspective transformation to bird eyes perspective is very useful to limit the section of the image where to focus the interest and, more important, to work on an image without prospective distortion (parallel lines appears parallel in the bird eyes image and not convergent in the vanishing Point).
 For this purpose the *cv2.warpPerspective* was computed it the edge image, selecting as source and destination corners of the rectangle the following corners:
@@ -198,7 +198,7 @@ src_corners = np.array([[585, 460], [203, 720], [1127, 720], [695, 460]]).astype
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/PerspectiveTransformation.png)
 ![alt tag](https://github.com/ciabo14/SelfDrivingCarND_AdvancedLaneFinding/blob/master/images/PerspectiveTransformation-Filtered.png)
 
-####5. Lane lines detection
+#### 5. Lane lines detection
 
 Since having a significative image on which working on as basilar for lane detection, a roboust approach to detect lane lines is as much important as a roboust filtering of the original image.
 In order to achieve the goal to detect lane lines (and than the entire lane), some consecuteve steps where executed:
@@ -218,7 +218,7 @@ def detect_lanes(self, binary_warped):
 	self.find_offset()
 ```
 
-#####5.1 Compute lane lines position pixels *pixels_detection()*
+##### 5.1 Compute lane lines position pixels *pixels_detection()*
 
 Depending on the application (test images or video stream), and from the history of detection (in case of video stream), the algorithm detect the lane pixels: 
 1. or appliying a sliding windows starting from the peaks found in the histogram of the image, 
@@ -241,7 +241,7 @@ def pixels_detection(self,binary_warped):
 ...
 ```
 
-#####5.2 Evlaluate found lines *manage_detected_pixels()*
+##### 5.2 Evlaluate found lines *manage_detected_pixels()*
 
 Once candidate lines pixels were selected, the strategy need to decide if the found pixels are enough for considering a lane line, and if these pixels brings to a significative lane line. 
 Two different approaches were tested: the first one use a buffer with the last *self.last_frame_used* lines detected pixels, and depending on the amount of the pixels detected, the list ring is modified accordingly. In case enough pixels were detected (and then we can consider the line as detected), this amout of pixels were added to the list while the oldest detected pixels in the list were removed: if the amount of pixels are not eought, the last detected pixels in the list were added once more to the list itself, removign the oldest pixels detected.
@@ -297,7 +297,7 @@ def manage_detected_pixels(self, left_x, left_y, right_x, right_y):
 	self.set_last_xy(left_x, left_y, right_x, right_y)
 ```
 
-#####5.3 Compute lines polynomial fit *fit_found_lanes()*
+##### 5.3 Compute lines polynomial fit *fit_found_lanes()*
 
 In both cases the pixels are then fitted by a polynomial function. In the first case all the detected pixels from history are used to fit a polynomial function. In second case instead, the polinomial function fitted in the last detected pixels is weighted with the polynomial coefficients found at the last iteration.
 def fit_found_lanes(self, binary_warped):
@@ -331,7 +331,7 @@ def fit_found_lanes(self, binary_warped):
 	self.right_fitx = self.right_fit[0]*self.ploty**2 + self.right_fit[1]*self.ploty + self.right_fit[2]
 ```
 
-#####5.4 Compute line curvature and camera position *manage_curvature(),  find_offset()*
+##### 5.4 Compute line curvature and camera position *manage_curvature(),  find_offset()*
 
 Lane curvature can be an important indicator about the the detected lane lines are correct, and even more importantly, can be an important indicator about how to handle a courve with a steering angle.
 For this reason, starting from detected lines, the curvature of these is computed. As for the lines pixels, also for the curvature two different approaches were tested: the first who involves the last *self.last_frame_used* curvature value to smooth the current one; the second one who smooth the current computed curvature, the the curvature computed in the last frame.
@@ -400,11 +400,11 @@ def find_offset(self):
 	self.offset = (w/2 - midpoint) * scale
 ```
 
-###6. Drow information on the original undistorted image
+### 6. Drow information on the original undistorted image
 
 Finally, both for test images and for frames caming from a video stream, the information are drown in the bird eyes image, and than transformed back in the original unistorted image.
 
-###Pipeline (video)
+### Pipeline (video)
 
 The execution of the described pipeline to a video respct to an image has 2 main differences:
 1. All the detection smoothing as well as plausability verification can be applied
@@ -431,9 +431,9 @@ def process_image(img):
 	return result
 ```
 
-###Discussion
+### Discussion
 
-####1. 
+#### 1. 
 In my opinion, the good results of a solution to this kind of problem comes from two different ways:
 1. Compute a strong and roboust edge detection to identify lane lines
 2. Develop a smart strategy to detect lines depending of the history (last frames) and the current detection features (like difference with the last detection rather than plausible curvature).
@@ -441,7 +441,7 @@ In my opinion, the good results of a solution to this kind of problem comes from
 A good combination of the two point above can provide good lane detection in almost all the conditions. 
 Of course, more complicated situations with a lot of shadows or artificial and not constant light, or even sun light reflection, requires a stronger calibration of the approach parameters.
 
-####2 
+#### 2 
 Interesting possibile future investigation
 Several are the possibile interesting investigation:
 
