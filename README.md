@@ -90,8 +90,10 @@ Below an example of how an image appears after the distortion correction.
 Lines are elements in the image recognized by drivers because of their shape, color and position/direction. Moreover, lines are detected in different light conditions. Good Light, presence of shadows ecc. 
 In order to recognize lines as a human driver does, the same recognition process is eligible for machines. 
 For this reasons two different filtering to the images were applied in order to discover lane lines:
+
 1. Color filtering
 2. Shape and position filtering using Sobel operator
+
 The first intuitive way to use color filtering, is to filter white and yellow colors in the image and discard all the other colors. However, using the RGB color space, we can develop a filter correlated to the light in the image (enviroment). 
 However, moving to a different space we can capture lines indipendetly form the the light (day light, artificial lights or even shadows). 
 This is the case of the HLS color space. 
